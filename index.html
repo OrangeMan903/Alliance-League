@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Football League</title>
-<style>
+  <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 20px;
@@ -103,6 +103,10 @@
 <body>
   <h1>Football League Fixtures</h1>
   <button onclick="toggleDarkMode()" id="darkModeBtn">Toggle Dark Mode</button>
+<div id="auth-controls">
+  <button onclick="promptLogin()">🔐 Login as Admin</button>
+  <button onclick="logout()" style="display:none;">🚪 Logout</button>
+</div>
 
   <label for="team-filter">Filter by Team:</label>
   <select id="team-filter" onchange="renderFixtures()">
@@ -227,9 +231,13 @@ function renderFixtures() {
   const weekFixtures = fixtures.filter(f => f.matchWeek === selectedWeek && (selectedTeam === "all" || f.home === selectedTeam || f.away === selectedTeam));
   const table = document.querySelector("#fixtures-table tbody");
   table.innerHTML = "";
+
   weekFixtures.forEach((f, idx) => {
     const index = fixtures.findIndex(fi => fi.home === f.home && fi.away === f.away && fi.matchWeek === f.matchWeek);
     const isPlayed = typeof f.homeScore === 'number';
+
+    const disableInputs = isPlayed || !isAdmin ? 'disabled' : '';
+
     table.innerHTML += `
       <tr>
         <td data-label="#">${idx + 1}</td>
@@ -237,22 +245,25 @@ function renderFixtures() {
         <td data-label="">vs</td>
         <td data-label="Away">${f.away}</td>
         <td data-label="Score">
-          <input type="number" min="0" id="home-${index}" value="${f.homeScore ?? ''}" ${isPlayed ? 'disabled' : ''}>
+          <input type="number" min="0" id="home-${index}" value="${f.homeScore ?? ''}" ${disableInputs}>
           -
-          <input type="number" min="0" id="away-${index}" value="${f.awayScore ?? ''}" ${isPlayed ? 'disabled' : ''}>
+          <input type="number" min="0" id="away-${index}" value="${f.awayScore ?? ''}" ${disableInputs}>
           <br>
           <small>
-            <input placeholder="Home scorers" id="homeScorers-${index}" ${isPlayed ? 'disabled' : ''} value="${f.homeScorers?.join(', ') || ''}">
-            <input placeholder="Away scorers" id="awayScorers-${index}" ${isPlayed ? 'disabled' : ''} value="${f.awayScorers?.join(', ') || ''}">
+            <input placeholder="Home scorers" id="homeScorers-${index}" ${disableInputs} value="${f.homeScorers?.join(', ') || ''}">
+            <input placeholder="Away scorers" id="awayScorers-${index}" ${disableInputs} value="${f.awayScorers?.join(', ') || ''}">
           </small>
         </td>
         <td data-label="Action">
-          ${isPlayed ? `<button onclick="editScore(${index})">Edit</button>` : `<button onclick="submitScore(${index})">Save</button>`}
+          ${isPlayed
+            ? (isAdmin ? `<button onclick="editScore(${index})">Edit</button>` : `<span style="color: gray;">Locked</span>`)
+            : (isAdmin ? `<button onclick="submitScore(${index})">Save</button>` : `<span style="color: gray;">Login Required</span>`)}
         </td>
         <td data-label="Status">${isPlayed ? "✅ Played" : "⏳ Pending"}</td>
       </tr>`;
   });
 }
+
 
 // Other JS functions like submitScore, editScore, updateStandings, renderStandings, renderTopScorers, downloadCSV, simulateAll, toggleDarkMode go here...
 // (Omitted for brevity. Let me know if you'd like them pasted in full next)
@@ -403,6 +414,28 @@ function toggleDarkMode() {
   const isDark = body.classList.contains("dark");
   localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
   darkBtn.textContent = isDark ? "Light Mode" : "Dark Mode";
+}
+let isAdmin = false;
+
+function promptLogin() {
+  const pass = prompt("Enter admin password:");
+  if (pass === "12345") {
+    isAdmin = true;
+    alert("Access granted.");
+    document.querySelector('#auth-controls button[onclick="promptLogin()"]').style.display = "none";
+    document.querySelector('#auth-controls button[onclick="logout()"]').style.display = "inline-block";
+    renderFixtures();
+  } else {
+    alert("You be tiff, getaway.");
+  }
+}
+
+function logout() {
+  isAdmin = false;
+  alert("You have been logged out.");
+  document.querySelector('#auth-controls button[onclick="promptLogin()"]').style.display = "inline-block";
+  document.querySelector('#auth-controls button[onclick="logout()"]').style.display = "none";
+  renderFixtures();
 }
 
 renderDropdown();
