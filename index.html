@@ -124,7 +124,7 @@
     </thead>
     <tbody></tbody>
   </table>
- <!-- <button onclick="resetLeague()">Reset All Data</button> -->
+  <!-- <button onclick="resetLeague()">Reset All Data</button> -->
 
   <h2>League Standings</h2>
   <table id="standings-table">
@@ -150,11 +150,11 @@
   <button onclick="downloadCSV('standings')">Download Standings</button>
   <button onclick="downloadCSV('scorers')">Download Top Scorers</button>
 
-<!--  <h2>Simulation</h2>
+  <!-- <h2>Simulation</h2>
   <button onclick="simulateAll()">Simulate All Matches</button> -->
 
 <script>
-const teams = ["Edosa", "Ifedayo", "Idris", "Ejike", "Moyo", "Adeola", "Jeremiah", "Kamiye", "Banky", "Damilare", "Emmanuel", "Ezechukwu"];
+const teams = ["Edosa", "Ifedayo", "Idris", "Ejike", "Moyo", "Adeola", "Jeremiah", "Kamiye", "Banky", "Damilare", "Emmanuel", "faruk", "waziri", "Ezechukwu"];
 let fixtures = [], standings = {}, topScorers = {};
 
 if (localStorage.getItem("fixtures")) {
@@ -168,26 +168,41 @@ if (localStorage.getItem("fixtures")) {
 }
 
 function generateFixtures() {
-  const matchweeks = [];
-  let rounds = teams.length - 1;
+  const teamCount = teams.length;
+  if (teamCount % 2 !== 0) teams.push("Bye"); // If odd number, add dummy team
+
+  const totalRounds = teams.length - 1; // 13 rounds for 14 teams
+  const half = teams.length / 2;
   let teamList = [...teams];
-  if (teamList.length % 2 !== 0) teamList.push("BYE");
-  for (let round = 0; round < rounds; round++) {
+  const matchweeks = [];
+
+  for (let round = 0; round < totalRounds; round++) {
     const week = [];
-    for (let i = 0; i < teamList.length / 2; i++) {
+    for (let i = 0; i < half; i++) {
       const home = teamList[i];
       const away = teamList[teamList.length - 1 - i];
-      if (home !== "BYE" && away !== "BYE") {
+      if (home !== "Bye" && away !== "Bye") {
         week.push({ home, away, matchWeek: round + 1, homeScore: null, awayScore: null });
       }
     }
+    teamList.splice(1, 0, teamList.pop()); // rotate teams except first
     matchweeks.push(week);
-    const fixed = teamList.shift();
-    teamList.splice(teamList.length / 2, 0, fixed);
   }
-  const secondLeg = matchweeks.map((w, i) => w.map(m => ({ home: m.away, away: m.home, matchWeek: i + 12, homeScore: null, awayScore: null })));
+
+  // Second leg (home/away swap)
+  const secondLeg = matchweeks.map((w, i) =>
+    w.map(m => ({
+      home: m.away,
+      away: m.home,
+      matchWeek: i + totalRounds + 1,
+      homeScore: null,
+      awayScore: null
+    }))
+  );
+
   return [...matchweeks.flat(), ...secondLeg.flat()];
 }
+
 
 function initStandings() {
   teams.forEach(team => standings[team] = { P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 });
@@ -206,13 +221,16 @@ function resetLeague() {
 
 function renderDropdown() {
   const select = document.getElementById("matchweek-select");
-  for (let i = 1; i <= 22; i++) {
+  select.innerHTML = "";
+  const maxWeek = Math.max(...fixtures.map(f => f.matchWeek)); // Detect actual max matchweek
+  for (let i = 1; i <= maxWeek; i++) {
     const option = document.createElement("option");
     option.value = i;
     option.textContent = `Matchweek ${i}`;
     select.appendChild(option);
   }
 }
+
 
 function populateTeamFilter() {
   const select = document.getElementById("team-filter");
@@ -376,7 +394,7 @@ function renderTopScorers() {
 function downloadCSV(type) {
   let csv = "";
   if (type === "fixtures") {
-    csv = "MatchWeek,Home,Away,HomeScore,AwayScore\n" + fixtures.map(f => `${f.matchWeek},${f.home},${f.away},${f.homeScore},${f.awayScore}`).join("\n");
+    csv = "MatchWeek,Home,HomeScore,AwayScore,Away\n" + fixtures.map(f => `${f.matchWeek},${f.home},${f.homeScore},${f.awayScore},${f.away}`).join("\n");
   } else if (type === "standings") {
     csv = "Team,P,W,D,L,GF,GA,GD,Pts\n" + Object.entries(standings).map(([t, s]) => `${t},${s.P},${s.W},${s.D},${s.L},${s.GF},${s.GA},${s.GF - s.GA},${s.Pts}`).join("\n");
   } else if (type === "topScorers") {
