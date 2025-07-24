@@ -437,7 +437,7 @@ let isAdmin = false;
 
 function promptLogin() {
   const pass = prompt("Enter admin password:");
-  if (pass === "12345") {
+  if (pass === "Alliance") {
     isAdmin = true;
     alert("Access granted.");
     document.querySelector('#auth-controls button[onclick="promptLogin()"]').style.display = "none";
