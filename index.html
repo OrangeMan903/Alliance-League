@@ -124,7 +124,7 @@
     </thead>
     <tbody></tbody>
   </table>
-   <button onclick="resetLeague()">Reset All Data</button>
+ <!--  <button onclick="resetLeague()">Reset All Data</button> -->
 
   <h2>League Standings</h2>
   <table id="standings-table">
@@ -137,27 +137,27 @@
     <tbody></tbody>
   </table>
 
-  <h2>Top Scorers</h2>
+<!--  <h2>Top Scorers</h2>
   <table id="scorers-table">
     <thead>
       <tr><th>Pos</th><th>Player</th><th>Goals</th></tr>
     </thead>
     <tbody></tbody>
-  </table>
+  </table> -->
 
   <h2>Export Data</h2>
   <button onclick="downloadCSV('fixtures')">Download Fixtures</button>
   <button onclick="downloadCSV('standings')">Download Standings</button>
   <button onclick="downloadCSV('scorers')">Download Top Scorers</button>
 
-   <h2>Simulation</h2>
-  <button onclick="simulateAll()">Simulate All Matches</button> 
+  <!-- <h2>Simulation</h2>
+  <button onclick="simulateAll()">Simulate All Matches</button> -->
 
 <script>
 const teams = ["Edosa", "Ifedayo", "Idris", "Ejike", "Moyo", "Adeola", "Jeremiah", "Kamiye", "Banky", "Damilare", "Emmanuel", "faruk", "waziri", "Ezechukwu"];
 let fixtures = [], standings = {}, topScorers = {};
 
-if (localStorage.getItem("fixtures")) {
+ if (localStorage.getItem("fixtures")) {
   fixtures = JSON.parse(localStorage.getItem("fixtures"));
   standings = JSON.parse(localStorage.getItem("standings"));
   topScorers = JSON.parse(localStorage.getItem("topScorers") || "{}");
@@ -165,7 +165,7 @@ if (localStorage.getItem("fixtures")) {
   fixtures = generateFixtures();
   initStandings();
   saveToStorage();
-}
+} 
 
 function generateFixtures() {
   const teamCount = teams.length;
